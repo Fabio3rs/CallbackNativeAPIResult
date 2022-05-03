@@ -1,7 +1,7 @@
 # Utilizando ideias do paradigma funcional para resultado de operações sem usar out-arguments
 
 ## Introdução
-É comum em C/C++/asm/etc. fazer funções que recebem argumentos de saída em interface externa de APIs para copiar o resultado de uma operação. Por exemplo as seguintes funções de ler o diretório de trabalho atual:
+É comum em C/C++/asm/etc. fazer funções que recebem argumentos de saída em interface externa de APIs para copiar o resultado de uma operação. Para citar um exemplo podemos verificar as seguintes funções de ler o diretório de trabalho atual:
 
 WinAPI:
 ```cpp
@@ -110,3 +110,31 @@ int main() {
 Consistindo então em um método seguro do ponto de vista de buffer overflows para solicitar informações para APIs externas.
 
 Podem haver algumas considerações de perda de desempenho usando vários wrapper calls, mas pode valer a pena dependendo da situação, além de manter a interface da API menos suscetível a bugs de buffer overflow e também uma possível economia de memória considerando que não precisará ser alocado memória previamente e sim só no momento em que receber um ponteiro para a informação a ser copiada.
+
+Uma opção diferente seria enviar um endereço de memória através do UserCode e talvez usar o dynamic_cast para conferir a validade do endereço, um pouco menos seguro, porém provavelmente mais eficiente em termos de ciclos de memória e CPU que a solução anterior pois não possui busca em map e também não possui mutex para garantir acesso de somente um thread ao map por vez:
+
+```cpp
+static void exampleDirectCallback() {
+    std::cout << __func__ << std::endl;
+    using namespace WrapperCallbackCode;
+    std::string SystemStartupResult;
+
+    {
+        DirectCallbackMgr cb((std::function<int(const char *, size_t)>(
+            [&SystemStartupResult](const char *json, size_t maxsize) {
+                size_t wkdirLen =
+                    maxsize == 0 ? strlen(json) : strnlen(json, maxsize);
+                SystemStartupResult.assign(json, wkdirLen);
+                return 0;
+            })));
+
+        inicializar(R"({})", cb.getCode(), decltype(cb)::callbackWrapper);
+    }
+
+    std::cout << "AAAAA " << SystemStartupResult << std::endl;
+}
+```
+
+Os exemplos acima tentam resolver a questão de passar o endereço de uma variável que está na stack sem necessidade de static com mutex/atomic extras, podendo então teoricamente operar em multi-threads.
+
+

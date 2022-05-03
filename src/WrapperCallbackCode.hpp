@@ -66,4 +66,35 @@ template <class T, class... Types> class ScopedCallbackMgr {
   private:
     uintptr_t code{0};
 };
+
+template <class T, class... Types>
+class DirectCallbackMgr : public CallbackBase {
+
+  public:
+    [[nodiscard]] uintptr_t getCode() const {
+        return reinterpret_cast<uintptr_t>(this);
+    }
+
+    static T callbackWrapper(uintptr_t code, Types... args) {
+        if (code == 0) {
+            return {};
+        }
+
+        CallbackBase *base = reinterpret_cast<CallbackBase *>(code);
+        auto *inst = dynamic_cast<DirectCallbackMgr<T, Types...> *>(base);
+
+        if (inst == nullptr) {
+            return {};
+        }
+
+        return inst->callbackObj(std::forward<Types>(args)...);
+    }
+
+    DirectCallbackMgr(std::function<T(Types...)> fn) : callbackObj(fn) {}
+
+    ~DirectCallbackMgr() override = default;
+
+  private:
+    std::function<T(Types...)> callbackObj;
+};
 } // namespace WrapperCallbackCode
