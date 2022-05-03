@@ -128,7 +128,7 @@ static void exampleDirectCallback() {
                 return 0;
             })));
 
-        inicializar(R"({})", cb.getCode(), decltype(cb)::callbackWrapper);
+        inicializar(cb.getCode(), decltype(cb)::callbackWrapper, R"({})");
     }
 
     std::cout << "AAAAA " << SystemStartupResult << std::endl;

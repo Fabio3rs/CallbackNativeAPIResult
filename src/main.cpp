@@ -33,8 +33,8 @@ int getcwdcb(uintptr_t code, callbackcwd_t fn) { return fn(code, "/home", 0); }
 typedef int (*systemStartupCallback_t)(uintptr_t code, const char *json,
                                        size_t maxsize);
 
-int inicializar(const char *config, uintptr_t code,
-                systemStartupCallback_t fn) {
+int inicializar(uintptr_t code, systemStartupCallback_t fn,
+                const char *config) {
     std::cout << config << std::endl;
     return fn(code, R"({ "success": true })", 0);
 }
@@ -74,7 +74,7 @@ static void exampleScopedCallback() {
                 return 0;
             })));
 
-        inicializar(R"({})", cb.getCode(), decltype(cb)::callbackWrapper);
+        inicializar(cb.getCode(), decltype(cb)::callbackWrapper, R"({})");
     }
 
     std::cout << "AAAAA " << SystemStartupResult << std::endl;
@@ -94,7 +94,7 @@ static void exampleDirectCallback() {
                 return 0;
             });
 
-        inicializar(R"({})", cb.getCode(), decltype(cb)::callbackWrapper);
+        inicializar(cb.getCode(), decltype(cb)::callbackWrapper, R"({})");
     }
 
     std::cout << "AAAAA " << SystemStartupResult << std::endl;

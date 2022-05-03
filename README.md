@@ -106,7 +106,7 @@ int main() {
             return 0;
         })));
 
-    getcwdcb(cb.getCode(), decltype(cb)::callbackWrapper);
+    inicializar(cb.getCode(), decltype(cb)::callbackWrapper, R"({})");
 
     std::cout << "Supose this can be a current working directory "
               << WorkingDirectory << std::endl;
@@ -117,7 +117,7 @@ This theoretically can be used in multi-thread applications.
 
 Can be some considerations of loss of performance using various call wrappers, but for the memory security sandpoint can be worth.
 
-A different option can be to send the memory address casted a uintptr_t through the UserCode and cast it back in some callback wrapper, a bit less secure since the it's hader to check the pointer validity, maybe using the dynamic_cast to add a layer of validation of the address type. Can be faster than the previous solution since it not uses a map and neither an mutex, and maybe only the std::function allocates in the heap. In thesis it continues compatible with multi-threading.
+A different option can be to send the memory address casted a uintptr_t through the UserCode and cast it back in some callback wrapper, a bit less secure since the it's hader to check the pointer validity, maybe using the dynamic_cast to add a layer of validation of the address type. Can be faster than the previous solution since it not uses a map and neither a mutex, and maybe only the std::function allocates in the heap. In thesis it continues compatible with multi-threading and probably faster since it has no mutex.
 
 ```cpp
 static void exampleDirectCallback() {
@@ -134,7 +134,7 @@ static void exampleDirectCallback() {
                 return 0;
             })));
 
-        inicializar(R"({})", cb.getCode(), decltype(cb)::callbackWrapper);
+        inicializar(cb.getCode(), decltype(cb)::callbackWrapper, R"({})");
     }
 
     std::cout << "AAAAA " << SystemStartupResult << std::endl;
